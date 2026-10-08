@@ -11,7 +11,8 @@
   /* Layout: one centered love-letter card per "page", floating hearts drifting behind it */
   :root {
     --bg-top: #ffe3ec;
-    --bg-bottom: #ffc2d4;
+    --bg-bottom: #ffb3c8;
+    --bg-deep: #f58fae;
     --card: #fffafc;
     --ink: #5a1a33;
     --rose: #e0446f;
@@ -25,8 +26,14 @@
   html, body { height: 100%; }
   body {
     margin: 0;
-    background: linear-gradient(170deg, var(--bg-top), var(--bg-bottom));
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255, 255, 255, .55), transparent 28%),
+      radial-gradient(circle at 85% 15%, rgba(255, 170, 200, .7), transparent 30%),
+      radial-gradient(circle at 80% 85%, rgba(255, 120, 160, .55), transparent 35%),
+      radial-gradient(circle at 10% 90%, rgba(255, 200, 215, .8), transparent 30%),
+      linear-gradient(170deg, var(--bg-top), var(--bg-bottom) 60%, var(--bg-deep));
     background-color: var(--bg-top);
+    background-attachment: fixed;
     color: var(--ink);
     font-family: var(--font-body);
     font-size: 17px;
@@ -48,6 +55,36 @@
     100% { transform: translateY(-115vh) translateX(-10px) rotate(-8deg); }
   }
 
+  /* Falling rose petals */
+  .petals { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .petals i {
+    position: absolute; top: -40px;
+    width: 14px; height: 18px;
+    background: radial-gradient(circle at 30% 30%, #ff9db8, #d6336c 70%);
+    border-radius: 80% 0 80% 0;
+    opacity: .75;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    25%  { transform: translate(30px, 28vh) rotate(90deg); }
+    50%  { transform: translate(-20px, 56vh) rotate(200deg); }
+    75%  { transform: translate(25px, 84vh) rotate(290deg); }
+    100% { transform: translate(-10px, 112vh) rotate(380deg); }
+  }
+
+  /* Twinkling sparkles */
+  .sparkles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .sparkles b {
+    position: absolute; color: #fff; font-weight: 400;
+    text-shadow: 0 0 8px #fff, 0 0 14px #ffb3c8;
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); }
+    50%      { opacity: 1; transform: scale(1) rotate(45deg); }
+  }
+
   main {
     position: relative; z-index: 1;
     min-height: 100%;
@@ -66,21 +103,52 @@
 
   .card {
     position: relative;
-    background: var(--card);
+    background:
+      radial-gradient(circle at 50% 0%, #fff 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 34px, rgba(224, 68, 111, .06) 34px 35px),
+      var(--card);
     border-radius: 28px;
-    padding: 48px 28px 40px;
+    padding: 56px 32px 44px;
     text-align: center;
-    box-shadow: 0 20px 50px -18px rgba(184, 38, 79, .45), 0 0 0 6px rgba(255, 255, 255, .55);
+    box-shadow:
+      0 0 0 6px rgba(255, 255, 255, .6),
+      0 0 60px 6px rgba(255, 143, 171, .55),
+      0 24px 60px -20px rgba(184, 38, 79, .6);
     display: grid; gap: 22px; justify-items: center;
   }
+  /* soft pulsing glow behind the card */
+  .card::before {
+    content: ""; position: absolute; inset: -30px; z-index: -1;
+    background: radial-gradient(closest-side, rgba(255, 105, 150, .45), transparent);
+    border-radius: 50%;
+    animation: glow 3s ease-in-out infinite;
+  }
+  @keyframes glow { 50% { transform: scale(1.06); opacity: .7; } }
+  /* thin dashed inner border, like a letter's frame */
+  .card::after {
+    content: ""; position: absolute; inset: 12px;
+    border: 1.5px dashed rgba(224, 68, 111, .35);
+    border-radius: 20px;
+    pointer-events: none;
+  }
+  .rose { position: absolute; font-size: 30px; line-height: 1; filter: drop-shadow(0 3px 4px rgba(184, 38, 79, .3)); }
+  .rose.tl { top: -8px; left: -8px; transform: rotate(-30deg); }
+  .rose.br { bottom: -8px; right: -8px; transform: rotate(150deg); }
+  .divider { color: var(--rose); letter-spacing: 8px; font-size: 14px; opacity: .8; margin-top: -8px; }
   /* little envelope-seal heart on top of each card */
   .seal {
     position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
     width: 52px; height: 52px; border-radius: 50%;
-    background: var(--rose);
+    background: radial-gradient(circle at 35% 30%, #ff7a9c, var(--rose-deep));
     display: grid; place-items: center;
     color: #fff; font-size: 24px;
-    box-shadow: 0 6px 16px -4px rgba(184, 38, 79, .6);
+    box-shadow: 0 6px 16px -4px rgba(184, 38, 79, .6), 0 0 0 5px rgba(255, 255, 255, .8);
+    animation: beat 1.4s ease-in-out infinite;
+  }
+  @keyframes beat {
+    0%, 40%, 100% { transform: translateX(-50%) scale(1); }
+    20% { transform: translateX(-50%) scale(1.15); }
+    30% { transform: translateX(-50%) scale(1.05); }
   }
 
   .eyebrow {
@@ -132,11 +200,11 @@
   }
   button:focus-visible { outline: 3px solid var(--rose-deep); outline-offset: 3px; }
   .btn-main {
-    background: var(--rose);
+    background: linear-gradient(135deg, #ff6f96, var(--rose) 50%, var(--rose-deep));
     color: #fff;
     box-shadow: 0 8px 20px -8px rgba(184, 38, 79, .8);
   }
-  .btn-main:hover { background: var(--rose-deep); transform: translateY(-2px) scale(1.04); }
+  .btn-main:hover { box-shadow: 0 10px 26px -6px rgba(184, 38, 79, .9); transform: translateY(-2px) scale(1.04); }
   .btn-soft {
     background: var(--blush);
     color: var(--rose-deep);
@@ -146,24 +214,28 @@
 
   .signature {
     font-family: var(--font-script);
-    font-size: 26px;
+    font-size: 34px;
     color: var(--rose);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hearts span, .emojis span, .page.active { animation: none; }
+    .hearts span, .emojis span, .page.active, .petals i, .sparkles b, .seal, .card::before { animation: none; }
   }
 </style>
 </head>
 <body>
 <div class="hearts" id="hearts" aria-hidden="true"></div>
+<div class="petals" id="petals" aria-hidden="true"></div>
+<div class="sparkles" id="sparkles" aria-hidden="true"></div>
 
 <main>
   <!-- Page 1: Welcome -->
   <section class="page" id="welcome">
     <div class="card">
+      <span class="rose tl" aria-hidden="true">🌹</span><span class="rose br" aria-hidden="true">🌹</span>
       <div class="seal" aria-hidden="true">♥</div>
       <div class="eyebrow">My love,</div>
+      <div class="divider" aria-hidden="true">♡ ♥ ♡</div>
       <h1>This is from your <span class="script">beloved boyfriend</span> who loves you so much</h1>
       <p class="aside">(also who you're stuck with your whole life)</p>
       <button class="btn-main" id="btn-click-here" data-go="question">click here</button>
@@ -173,8 +245,10 @@
   <!-- Page 2: The question -->
   <section class="page" id="question">
     <div class="card">
+      <span class="rose tl" aria-hidden="true">🌹</span><span class="rose br" aria-hidden="true">🌹</span>
       <div class="seal" aria-hidden="true">♥</div>
       <div class="eyebrow">A very important question</div>
+      <div class="divider" aria-hidden="true">♡ ♥ ♡</div>
       <h1>Do you love your boyfriend?</h1>
       <p class="aside">(The handsome majestic Rushil)</p>
       <div class="actions">
@@ -187,6 +261,7 @@
   <!-- Page 3a: No -->
   <section class="page" id="no">
     <div class="card">
+      <span class="rose tl" aria-hidden="true">🌹</span><span class="rose br" aria-hidden="true">🌹</span>
       <div class="seal" aria-hidden="true">💔</div>
       <h1>Giirrrlll..... You've chosen the wrong option</h1>
       <div class="emojis" aria-label="two sad faces and two angry faces">
@@ -199,6 +274,7 @@
   <!-- Page 3b: Yes -->
   <section class="page" id="yes">
     <div class="card">
+      <span class="rose tl" aria-hidden="true">🌹</span><span class="rose br" aria-hidden="true">🌹</span>
       <div class="seal" aria-hidden="true">♥</div>
       <h1>I knew it, I knew it <span class="script">you love me</span></h1>
       <div class="emojis" aria-label="four kissing faces">
@@ -211,12 +287,13 @@
   <!-- Page 4: The end -->
   <section class="page" id="end">
     <div class="card">
+      <span class="rose tl" aria-hidden="true">🌹</span><span class="rose br" aria-hidden="true">🌹</span>
       <div class="seal" aria-hidden="true">♥</div>
       <h1>You can watch Gilmore Girls now <span class="script">(with the tiramisu)</span></h1>
       <div class="emojis" aria-label="four pink hearts">
         <span>🩷</span><span>🩷</span><span>🩷</span><span>🩷</span>
       </div>
-      <div class="signature">Forever yours, Rushil</div>
+      <div class="signature">Love you little chicken 🐥</div>
     </div>
   </section>
 </main>
@@ -416,6 +493,32 @@
     celebrate();
     go("yes");
   });
+
+  // ---- Falling rose petals and twinkling sparkles ----
+  (function makePetalsAndSparkles() {
+    const petals = document.getElementById("petals");
+    for (let i = 0; i < 16; i++) {
+      const p = document.createElement("i");
+      p.style.left = Math.random() * 100 + "%";
+      const size = 0.7 + Math.random() * 0.8;
+      p.style.width = 14 * size + "px";
+      p.style.height = 18 * size + "px";
+      p.style.animationDuration = 10 + Math.random() * 10 + "s";
+      p.style.animationDelay = -Math.random() * 20 + "s";
+      petals.appendChild(p);
+    }
+    const sparkles = document.getElementById("sparkles");
+    for (let i = 0; i < 26; i++) {
+      const b = document.createElement("b");
+      b.textContent = "✦";
+      b.style.left = Math.random() * 100 + "%";
+      b.style.top = Math.random() * 100 + "%";
+      b.style.fontSize = 8 + Math.random() * 12 + "px";
+      b.style.animationDuration = 2 + Math.random() * 3 + "s";
+      b.style.animationDelay = -Math.random() * 5 + "s";
+      sparkles.appendChild(b);
+    }
+  })();
 
   // ---- Floating hearts background ----
   (function makeHearts() {
