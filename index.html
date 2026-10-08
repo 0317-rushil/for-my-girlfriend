@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>From Rushil, With Love</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@500;600;700&display=swap">
+<style>
+  /* Layout: one centered love-letter card per "page", floating hearts drifting behind it */
+  :root {
+    --bg-top: #ffe3ec;
+    --bg-bottom: #ffc2d4;
+    --card: #fffafc;
+    --ink: #5a1a33;
+    --rose: #e0446f;
+    --rose-deep: #b8264f;
+    --blush: #ffd6e2;
+    --muted: #8c4a63;
+    --font-script: "Great Vibes", "Snell Roundhand", "Brush Script MT", cursive;
+    --font-body: "Quicksand", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: linear-gradient(170deg, var(--bg-top), var(--bg-bottom));
+    background-color: var(--bg-top);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    overflow-x: hidden;
+  }
+
+  /* Floating hearts */
+  .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .hearts span {
+    position: absolute; bottom: -60px;
+    color: var(--rose);
+    opacity: .35;
+    animation: rise linear infinite;
+    user-select: none;
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); }
+    50%  { transform: translateY(-55vh) translateX(20px) rotate(12deg); }
+    100% { transform: translateY(-115vh) translateX(-10px) rotate(-8deg); }
+  }
+
+  main {
+    position: relative; z-index: 1;
+    min-height: 100%;
+    box-sizing: border-box;
+    display: grid; place-items: center;
+    padding-inline: 16px;
+    padding-block: 40px;
+  }
+
+  .page { display: none; width: 100%; max-width: 560px; }
+  .page.active { display: block; animation: bloom .6s ease-out; }
+  @keyframes bloom {
+    from { transform: translateY(14px) scale(.97); opacity: .4; }
+    to   { transform: none; opacity: 1; }
+  }
+
+  .card {
+    position: relative;
+    background: var(--card);
+    border-radius: 28px;
+    padding: 48px 28px 40px;
+    text-align: center;
+    box-shadow: 0 20px 50px -18px rgba(184, 38, 79, .45), 0 0 0 6px rgba(255, 255, 255, .55);
+    display: grid; gap: 22px; justify-items: center;
+  }
+  /* little envelope-seal heart on top of each card */
+  .seal {
+    position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--rose);
+    display: grid; place-items: center;
+    color: #fff; font-size: 24px;
+    box-shadow: 0 6px 16px -4px rgba(184, 38, 79, .6);
+  }
+
+  .eyebrow {
+    font-family: var(--font-script);
+    font-size: 30px;
+    color: var(--rose);
+    line-height: 1;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 5.2vw, 30px);
+    line-height: 1.35;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  h1 .script {
+    font-family: var(--font-script);
+    font-weight: 400;
+    font-size: 1.35em;
+    color: var(--rose-deep);
+  }
+  .aside {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .emojis {
+    font-size: clamp(36px, 10vw, 52px);
+    letter-spacing: 6px;
+    line-height: 1.2;
+  }
+  .emojis span { display: inline-block; animation: bob 1.8s ease-in-out infinite; }
+  .emojis span:nth-child(2) { animation-delay: .15s; }
+  .emojis span:nth-child(3) { animation-delay: .3s; }
+  .emojis span:nth-child(4) { animation-delay: .45s; }
+  @keyframes bob { 50% { transform: translateY(-8px) scale(1.08); } }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  button {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 18px;
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 34px;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  button:focus-visible { outline: 3px solid var(--rose-deep); outline-offset: 3px; }
+  .btn-main {
+    background: var(--rose);
+    color: #fff;
+    box-shadow: 0 8px 20px -8px rgba(184, 38, 79, .8);
+  }
+  .btn-main:hover { background: var(--rose-deep); transform: translateY(-2px) scale(1.04); }
+  .btn-soft {
+    background: var(--blush);
+    color: var(--rose-deep);
+  }
+  .btn-soft:hover { transform: translateY(-2px); }
+  .btn-main:active, .btn-soft:active { transform: scale(.96); }
+
+  .signature {
+    font-family: var(--font-script);
+    font-size: 26px;
+    color: var(--rose);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hearts span, .emojis span, .page.active { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts" aria-hidden="true"></div>
+
+<main>
+  <!-- Page 1: Welcome -->
+  <section class="page" id="welcome">
+    <div class="card">
+      <div class="seal" aria-hidden="true">♥</div>
+      <div class="eyebrow">My love,</div>
+      <h1>This is from your <span class="script">beloved boyfriend</span> who loves you so much</h1>
+      <p class="aside">(also who you're stuck with your whole life)</p>
+      <button class="btn-main" id="btn-click-here" data-go="question">click here</button>
+    </div>
+  </section>
+
+  <!-- Page 2: The question -->
+  <section class="page" id="question">
+    <div class="card">
+      <div class="seal" aria-hidden="true">♥</div>
+      <div class="eyebrow">A very important question</div>
+      <h1>Do you love your boyfriend?</h1>
+      <p class="aside">(The handsome majestic Rushil)</p>
+      <div class="actions">
+        <button class="btn-main" id="btn-yes">Yes</button>
+        <button class="btn-soft" id="btn-no" data-go="no">No</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 3a: No -->
+  <section class="page" id="no">
+    <div class="card">
+      <div class="seal" aria-hidden="true">💔</div>
+      <h1>Giirrrlll..... You've chosen the wrong option</h1>
+      <div class="emojis" aria-label="two sad faces and two angry faces">
+        <span>😢</span><span>😭</span><span>😠</span><span>😡</span>
+      </div>
+      <button class="btn-soft" id="btn-try-again" data-go="question">Try again</button>
+    </div>
+  </section>
+
+  <!-- Page 3b: Yes -->
+  <section class="page" id="yes">
+    <div class="card">
+      <div class="seal" aria-hidden="true">♥</div>
+      <h1>I knew it, I knew it <span class="script">you love me</span></h1>
+      <div class="emojis" aria-label="four kissing faces">
+        <span>😘</span><span>😘</span><span>😘</span><span>😘</span>
+      </div>
+      <button class="btn-main" id="btn-continue" data-go="end">Continue</button>
+    </div>
+  </section>
+
+  <!-- Page 4: The end -->
+  <section class="page" id="end">
+    <div class="card">
+      <div class="seal" aria-hidden="true">♥</div>
+      <h1>You can watch Gilmore Girls now <span class="script">(with the tiramisu)</span></h1>
+      <div class="emojis" aria-label="four pink hearts">
+        <span>🩷</span><span>🩷</span><span>🩷</span><span>🩷</span>
+      </div>
+      <div class="signature">Forever yours, Rushil</div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script>
+  // ---- Page navigation (same tab, each step is its own page via #hash) ----
+  const PAGES = ["welcome", "question", "no", "yes", "end"];
+
+  function show(id) {
+    if (!PAGES.includes(id)) id = "welcome";
+    document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === id));
+    window.scrollTo(0, 0);
+  }
+  function go(id) {
+    if (location.hash === "#" + id) show(id);
+    else location.hash = id; // triggers hashchange -> show()
+  }
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+
+  document.querySelectorAll("[data-go]").forEach(btn =>
+    btn.addEventListener("click", () => go(btn.dataset.go))
+  );
+
+  // ---- Pop sound ----
+  // Played through an <audio> element (the phone's media channel), so it still
+  // plays when an iPhone's ring/silent switch is on silent. Web Audio would be muted.
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+
+  const POP_SRC = (function buildPopWav() {
+    const rate = 44100, secs = 0.45, n = Math.floor(rate * secs);
+    const samples = new Float32Array(n);
+    // two pops, 0.18s apart: a quick pitch drop plus a short noise snap
+    [0, 0.18].forEach(start => {
+      const s0 = Math.floor(start * rate);
+      let phase = 0;
+      for (let i = 0; i < rate * 0.16 && s0 + i < n; i++) {
+        const t = i / rate;
+        const freq = 900 * Math.pow(120 / 900, Math.min(t / 0.12, 1));
+        phase += 2 * Math.PI * freq / rate;
+        const env = Math.exp(-t * 30);
+        let v = Math.sin(phase) * 0.8 * env;
+        if (t < 0.05) v += (Math.random() * 2 - 1) * 0.45 * (1 - t / 0.05);
+        samples[s0 + i] += v;
+      }
+    });
+    // encode as 16-bit mono WAV
+    const buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, "RIFF"); dv.setUint32(4, 36 + n * 2, true); str(8, "WAVE");
+    str(12, "fmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+    dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+    str(36, "data"); dv.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) dv.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 32767, true);
+    let bin = ""; const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return "data:audio/wav;base64," + btoa(bin);
+  })();
+  const popAudio = new Audio(POP_SRC);
+  popAudio.preload = "auto";
+
+  function pop() {
+    try {
+      popAudio.currentTime = 0;
+      const p = popAudio.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) { /* sound not available, confetti still runs */ }
+  }
+
+  // ---- Confetti ----
+  function celebrate() {
+    if (typeof confetti !== "function") return;
+    const colors = ["#e0446f", "#ff8fab", "#ffc2d4", "#ffffff", "#b8264f", "#ffd700"];
+    let shapes;
+    try {
+      const heart = confetti.shapeFromText({ text: "❤️", scalar: 2 });
+      shapes = [heart, "circle", "square"];
+    } catch (e) { shapes = ["circle", "square"]; }
+
+    confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 }, colors, shapes, scalar: 1.2 });
+    setTimeout(() => {
+      confetti({ particleCount: 70, angle: 60, spread: 70, origin: { x: 0, y: 0.7 }, colors, shapes });
+      confetti({ particleCount: 70, angle: 120, spread: 70, origin: { x: 1, y: 0.7 }, colors, shapes });
+    }, 250);
+  }
+
+  document.getElementById("btn-yes").addEventListener("click", () => {
+    pop();
+    celebrate();
+    go("yes");
+  });
+
+  // ---- Floating hearts background ----
+  (function makeHearts() {
+    const box = document.getElementById("hearts");
+    const glyphs = ["♥", "♡", "❤", "💕", "💗"];
+    for (let i = 0; i < 22; i++) {
+      const s = document.createElement("span");
+      s.textContent = glyphs[i % glyphs.length];
+      s.style.left = Math.random() * 100 + "%";
+      s.style.fontSize = 14 + Math.random() * 26 + "px";
+      s.style.animationDuration = 9 + Math.random() * 10 + "s";
+      s.style.animationDelay = -Math.random() * 18 + "s";
+      box.appendChild(s);
+    }
+  })();
+</script>
+</body>
+</html>
