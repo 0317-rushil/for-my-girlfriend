@@ -318,64 +318,67 @@
     btn.addEventListener("click", () => go(btn.dataset.go))
   );
 
-  // ---- Balloon pop + firecracker sound ----
+  // ---- Party popper sound ----
   // Played through an <audio> element (the phone's media channel), so it still
   // plays when an iPhone's ring/silent switch is on silent. Web Audio would be muted.
   try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
 
-  const POP_SRC = (function buildBalloonPopWav() {
-    // Balloon burst: a sharp broadband crack, a short low "thump",
-    // and a quick decaying tail, mixed straight into WAV samples.
-    const rate = 44100, secs = 2.6, n = Math.floor(rate * secs);
+  const POP_SRC = (function buildPartyPopperWav() {
+    // Party popper: a sharp bang, a whoosh of streamers flying out,
+    // and the crinkle of paper confetti, mixed straight into WAV samples.
+    const rate = 44100, secs = 1.6, n = Math.floor(rate * secs);
     const samples = new Float32Array(n);
-    let lp1 = 0, lp2 = 0, hpPrev = 0, hpOut = 0, thumpPhase = 0;
-    for (let i = 0; i < n; i++) {
+
+    // 1. the bang: bright crack + a hollow tonal "pop" + low thump
+    let hp = 0, prev = 0, lp = 0, ph1 = 0, ph2 = 0;
+    for (let i = 0; i < rate * 0.35; i++) {
       const t = i / rate;
-      const white = Math.random() * 2 - 1;
-      const attack = Math.min(1, t / 0.0006);
-
-      // crack: bright noise, very fast decay (high-passed)
-      hpOut = 0.92 * (hpOut + white - hpPrev); hpPrev = white;
-      const crack = hpOut * Math.exp(-t / 0.012) * 1.1;
-
-      // body: darker noise, slightly longer decay
-      lp1 += 0.35 * (white - lp1);
-      const body = lp1 * Math.exp(-t / 0.045) * 1.4;
-
-      // tail: soft, muffled room ring-out
-      lp2 += 0.08 * (white - lp2);
-      const tail = lp2 * Math.exp(-t / 0.16) * 1.6;
-
-      // thump: low sine that drops in pitch
-      const f = 55 + 90 * Math.exp(-t / 0.02);
-      thumpPhase += 2 * Math.PI * f / rate;
-      const thump = Math.sin(thumpPhase) * Math.exp(-t / 0.05) * 1.0;
-
-      samples[i] = attack * (crack + body + tail + thump);
+      const w = Math.random() * 2 - 1;
+      hp = 0.95 * (hp + w - prev); prev = w;
+      lp += 0.3 * (w - lp);
+      ph1 += 2 * Math.PI * (420 * Math.exp(-t / 0.04) + 180) / rate;
+      ph2 += 2 * Math.PI * (60 + 80 * Math.exp(-t / 0.015)) / rate;
+      const attack = Math.min(1, t / 0.0004);
+      samples[i] += attack * (
+        hp * 1.3 * Math.exp(-t / 0.008) +
+        lp * 1.2 * Math.exp(-t / 0.03) +
+        Math.sin(ph1) * 0.6 * Math.exp(-t / 0.035) +
+        Math.sin(ph2) * 0.9 * Math.exp(-t / 0.06)
+      );
     }
-    // firecrackers: a rapid string of sharp bangs, starting together with the balloon pop
-    let at = 0.005;
-    while (at < 2.3) {
+
+    // 2. the whoosh: noise through a sweeping band-pass filter
+    let y1 = 0, y2 = 0;
+    for (let i = 0; i < rate * 0.5; i++) {
+      const t = i / rate;
+      const s0 = Math.floor(0.01 * rate) + i;
+      const f = 3500 * Math.exp(-t / 0.25) + 600;
+      const r = 0.97, c = 2 * r * Math.cos(2 * Math.PI * f / rate);
+      const x = Math.random() * 2 - 1;
+      const y = x * (1 - r) + c * y1 - r * r * y2;
+      y2 = y1; y1 = y;
+      const env = Math.min(1, t / 0.02) * Math.exp(-t / 0.15);
+      samples[s0] += y * env * 3.5;
+    }
+
+    // 3. paper crinkle: lots of tiny random clicks, densest right after the bang
+    for (let k = 0; k < 420; k++) {
+      const at = 0.04 + Math.pow(Math.random(), 1.8) * 1.3;
       const s0 = Math.floor(at * rate);
-      const amp = 0.5 + Math.random() * 0.7;
-      const decay = 0.006 + Math.random() * 0.014;
-      let prev = 0, hp = 0, lp = 0, ph = 0;
-      for (let i = 0; i < rate * 0.12 && s0 + i < n; i++) {
-        const t = i / rate;
+      const amp = (0.15 + Math.random() * 0.35) * Math.exp(-(at - 0.04) / 0.6);
+      const len = Math.floor(rate * (0.001 + Math.random() * 0.004));
+      let p = 0, h = 0;
+      for (let i = 0; i < len && s0 + i < n; i++) {
         const w = Math.random() * 2 - 1;
-        hp = 0.9 * (hp + w - prev); prev = w;
-        lp += 0.25 * (w - lp);
-        ph += 2 * Math.PI * (70 + 60 * Math.exp(-t / 0.01)) / rate;
-        const env = Math.exp(-t / decay);
-        samples[s0 + i] += amp * env * (hp * 0.9 + lp * 0.8 + Math.sin(ph) * 0.4);
+        h = 0.85 * (h + w - p); p = w;
+        samples[s0 + i] += h * amp * (1 - i / len);
       }
-      // bangs come in quick clusters with the odd short gap, like a cracker string
-      at += Math.random() < 0.15 ? 0.12 + Math.random() * 0.15 : 0.03 + Math.random() * 0.07;
     }
+
     // make it loud: drive into a soft limiter, then fill the full range
     let peak = 0;
     for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(samples[i]));
-    for (let i = 0; i < n; i++) samples[i] = Math.tanh(3 * samples[i] / (peak || 1));
+    for (let i = 0; i < n; i++) samples[i] = Math.tanh(2.5 * samples[i] / (peak || 1));
     peak = 0;
     for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(samples[i]));
     const norm = 1 / (peak || 1);
