@@ -318,67 +318,47 @@
     btn.addEventListener("click", () => go(btn.dataset.go))
   );
 
-  // ---- Party popper sound ----
+  // ---- Balloon pop sound ----
   // Played through an <audio> element (the phone's media channel), so it still
   // plays when an iPhone's ring/silent switch is on silent. Web Audio would be muted.
   try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
 
-  const POP_SRC = (function buildPartyPopperWav() {
-    // Party popper: a sharp bang, a whoosh of streamers flying out,
-    // and the crinkle of paper confetti, mixed straight into WAV samples.
-    const rate = 44100, secs = 1.6, n = Math.floor(rate * secs);
+  const POP_SRC = (function buildBalloonPopWav() {
+    // Balloon burst: a very sharp crack, a deep thump of air, the quick
+    // flap of the rubber tearing, and a short room echo.
+    const rate = 44100, secs = 0.8, n = Math.floor(rate * secs);
     const samples = new Float32Array(n);
-
-    // 1. the bang: bright crack + a hollow tonal "pop" + low thump
-    let hp = 0, prev = 0, lp = 0, ph1 = 0, ph2 = 0;
-    for (let i = 0; i < rate * 0.35; i++) {
+    let hp = 0, prev = 0, lp1 = 0, lp2 = 0, thumpPh = 0;
+    for (let i = 0; i < n; i++) {
       const t = i / rate;
       const w = Math.random() * 2 - 1;
-      hp = 0.95 * (hp + w - prev); prev = w;
-      lp += 0.3 * (w - lp);
-      ph1 += 2 * Math.PI * (420 * Math.exp(-t / 0.04) + 180) / rate;
-      ph2 += 2 * Math.PI * (60 + 80 * Math.exp(-t / 0.015)) / rate;
-      const attack = Math.min(1, t / 0.0004);
-      samples[i] += attack * (
-        hp * 1.3 * Math.exp(-t / 0.008) +
-        lp * 1.2 * Math.exp(-t / 0.03) +
-        Math.sin(ph1) * 0.6 * Math.exp(-t / 0.035) +
-        Math.sin(ph2) * 0.9 * Math.exp(-t / 0.06)
-      );
-    }
+      const attack = Math.min(1, t / 0.0003);
 
-    // 2. the whoosh: noise through a sweeping band-pass filter
-    let y1 = 0, y2 = 0;
-    for (let i = 0; i < rate * 0.5; i++) {
-      const t = i / rate;
-      const s0 = Math.floor(0.01 * rate) + i;
-      const f = 3500 * Math.exp(-t / 0.25) + 600;
-      const r = 0.97, c = 2 * r * Math.cos(2 * Math.PI * f / rate);
-      const x = Math.random() * 2 - 1;
-      const y = x * (1 - r) + c * y1 - r * r * y2;
-      y2 = y1; y1 = y;
-      const env = Math.min(1, t / 0.02) * Math.exp(-t / 0.15);
-      samples[s0] += y * env * 3.5;
-    }
+      // crack: bright, extremely short
+      hp = 0.93 * (hp + w - prev); prev = w;
+      const crack = hp * 1.6 * Math.exp(-t / 0.007);
 
-    // 3. paper crinkle: lots of tiny random clicks, densest right after the bang
-    for (let k = 0; k < 420; k++) {
-      const at = 0.04 + Math.pow(Math.random(), 1.8) * 1.3;
-      const s0 = Math.floor(at * rate);
-      const amp = (0.15 + Math.random() * 0.35) * Math.exp(-(at - 0.04) / 0.6);
-      const len = Math.floor(rate * (0.001 + Math.random() * 0.004));
-      let p = 0, h = 0;
-      for (let i = 0; i < len && s0 + i < n; i++) {
-        const w = Math.random() * 2 - 1;
-        h = 0.85 * (h + w - p); p = w;
-        samples[s0 + i] += h * amp * (1 - i / len);
-      }
-    }
+      // body of the bang: full-range noise, a little longer
+      lp1 += 0.4 * (w - lp1);
+      const body = lp1 * 1.6 * Math.exp(-t / 0.035);
 
+      // rubber flap: noise pulsing quickly as the balloon skin snaps back
+      const flap = lp1 * 0.5 * Math.exp(-t / 0.05) * (0.5 + 0.5 * Math.sin(2 * Math.PI * 140 * t));
+
+      // thump: deep air push that drops in pitch
+      thumpPh += 2 * Math.PI * (50 + 110 * Math.exp(-t / 0.012)) / rate;
+      const thump = Math.sin(thumpPh) * 1.1 * Math.exp(-t / 0.06);
+
+      // room echo: soft muffled tail
+      lp2 += 0.06 * (w - lp2);
+      const echo = lp2 * 2.2 * Math.exp(-t / 0.18) * Math.min(1, t / 0.01);
+
+      samples[i] = attack * (crack + body + flap + thump + echo);
+    }
     // make it loud: drive into a soft limiter, then fill the full range
     let peak = 0;
     for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(samples[i]));
-    for (let i = 0; i < n; i++) samples[i] = Math.tanh(2.5 * samples[i] / (peak || 1));
+    for (let i = 0; i < n; i++) samples[i] = Math.tanh(3 * samples[i] / (peak || 1));
     peak = 0;
     for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(samples[i]));
     const norm = 1 / (peak || 1);
