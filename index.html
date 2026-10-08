@@ -318,42 +318,29 @@
     btn.addEventListener("click", () => go(btn.dataset.go))
   );
 
-  // ---- Balloon pop sound ----
+  // ---- Pop sound ----
   // Played through an <audio> element (the phone's media channel), so it still
   // plays when an iPhone's ring/silent switch is on silent. Web Audio would be muted.
   try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
 
-  const POP_SRC = (function buildBalloonPopWav() {
-    // Balloon burst: a very sharp crack, a deep thump of air, the quick
-    // flap of the rubber tearing, and a short room echo.
-    const rate = 44100, secs = 0.8, n = Math.floor(rate * secs);
+  const POP_SRC = (function buildSinglePopWav() {
+    // One quick, loud pop: a sharp crack with a punchy low thump, nothing after it.
+    const rate = 44100, secs = 0.18, n = Math.floor(rate * secs);
     const samples = new Float32Array(n);
-    let hp = 0, prev = 0, lp1 = 0, lp2 = 0, thumpPh = 0;
+    let hp = 0, prev = 0, lp = 0, thumpPh = 0;
     for (let i = 0; i < n; i++) {
       const t = i / rate;
       const w = Math.random() * 2 - 1;
       const attack = Math.min(1, t / 0.0003);
-
-      // crack: bright, extremely short
       hp = 0.93 * (hp + w - prev); prev = w;
-      const crack = hp * 1.6 * Math.exp(-t / 0.007);
-
-      // body of the bang: full-range noise, a little longer
-      lp1 += 0.4 * (w - lp1);
-      const body = lp1 * 1.6 * Math.exp(-t / 0.035);
-
-      // rubber flap: noise pulsing quickly as the balloon skin snaps back
-      const flap = lp1 * 0.5 * Math.exp(-t / 0.05) * (0.5 + 0.5 * Math.sin(2 * Math.PI * 140 * t));
-
-      // thump: deep air push that drops in pitch
-      thumpPh += 2 * Math.PI * (50 + 110 * Math.exp(-t / 0.012)) / rate;
-      const thump = Math.sin(thumpPh) * 1.1 * Math.exp(-t / 0.06);
-
-      // room echo: soft muffled tail
-      lp2 += 0.06 * (w - lp2);
-      const echo = lp2 * 2.2 * Math.exp(-t / 0.18) * Math.min(1, t / 0.01);
-
-      samples[i] = attack * (crack + body + flap + thump + echo);
+      lp += 0.45 * (w - lp);
+      thumpPh += 2 * Math.PI * (70 + 120 * Math.exp(-t / 0.01)) / rate;
+      const crack = hp * 1.5 * Math.exp(-t / 0.006);
+      const body = lp * 1.4 * Math.exp(-t / 0.018);
+      const thump = Math.sin(thumpPh) * 1.0 * Math.exp(-t / 0.03);
+      // fade the last few milliseconds to silence so it ends cleanly
+      const fadeOut = Math.min(1, (secs - t) / 0.02);
+      samples[i] = attack * fadeOut * (crack + body + thump);
     }
     // make it loud: drive into a soft limiter, then fill the full range
     let peak = 0;
